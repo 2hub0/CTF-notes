@@ -64,5 +64,29 @@ cat ./-file01
 ```
 find / -size 1033c
 ```
-其中c表示单位为字节，发现符合条件的文件路径/home/bandit5/inhere/maybehere07/.file2，通过cat查看即可。
+其中-size表示指定文件大小，可为一个数或一个范围，c表示单位为字节，发现符合条件的文件路径/home/bandit5/inhere/maybehere07/.file2，通过cat查看即可。
 <!-- 下一关用户名bandit6，密码：DXjZPULLxYr17uwoI01bNLQbtFemEgo7-->
+
+# Level 6 → Level 7
+查看服务器上某处文件夹下“所有者为bandit7、所属组为bandit6、大小为33bytes“的文件即可获取下一关密码，直接通过这三个条件进行全盘搜索即可：
+```
+find / -group bandit6 -user bandit7 -size 33c
+```
+其中-group表示文件所属组，-user表示文件所属用户，现符合条件的文件路径/var/lib/dpkg/info/bandit7.password，通过cat查看即可。
+<!-- 下一关用户名bandit7，密码：HKBPTKQnIay4Fw76bEy8PVxKEDQRKTzs-->
+
+# Level 7 → Level 8
+查看文件data.txt，其中下一关密码位于“millionth”单词边上，通过cat和grep命令组合限制输出内容：
+```
+cat data.txt | grep millionth
+```
+其中|起管道作用，将前一个命令的结果输出到第二个命令中，grep命令用来匹配格式，并把匹配的行打印出来，即可看到密码。
+<!-- 下一关用户名bandit8，密码：cvX2JJa4CFALtqS87jk27qwqGhBM9plV-->
+
+# Level 8 → Level 9
+查看文件data.txt，其中下一关密码只出现了一行，uniq命令用于检查及删除文本文件中重复出现的行，通常与sort连用，通过：
+```
+sort data.txt | uniq -u
+```
+首先使用sort进行排序，将data.txt文件中相同的内容放到一起，因为uniq只能删除连续出现的重复行，-u表示仅显示出一次的行列，即可得到密码。
+<!-- 下一关用户名bandit9，密码：UsvVyFSfZZWbi6wgC7dAFyFuR6jQQUhR-->
