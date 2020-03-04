@@ -175,3 +175,95 @@ ssh -i 1.txt bandit17@localhost
 cat /etc/bandit_pass/bandit17 #以bandit17用户登录后可查看密码
 ```
 <!-- 下一关用户名bandit17，密码：xLYVMN9WE5zQ5vHacb0sZEVqbrp7nBTn-->
+
+# Level 17 → Level 18
+下一关密码在password.new中，且密码所在行是password.old和password.new中唯一修改过的一行，直接使用diff命令查看两个文件区别：
+```
+diff passwords.new passwords.old -y --suppress-common-lines #-y表示以并列方式显示两文件差异，--suppress-common-lines表示仅显示不同之处
+```
+即可显示，注意密码位于password.new中即可。
+<!-- 下一关用户名bandit18，密码：kfBf3eYk5BPBRzwjqutbbfE887SVc5Yd-->
+
+# Level 18 → Level 19
+下一关密码在readme文件中，但由于bandit18用户文件夹中.bashrc文件被修改，直接通过ssh登录会被直接退出，此时无需登录到服务器，直接在ssh命令后添加要执行的命令：
+```
+ssh bandit18@localhost cat readme #直接在上一关用户bandit17用户下操作
+```
+即可查看readme文件中的内容，即下一关密码。
+<!-- 下一关用户名bandit19，密码：IueksS7Ubh8G3DCwVzrTd8rAVOwq3M5x-->
+
+# Level 19 → Level 20
+下一关密码位于/etc/bandit_pass文件夹中，但文件权限不够，通过运行当前文件夹下的可执行文件发现这个文件的作用是将euid设置为bandit20用户，即拥有bandit20用户的权限，然后就可以查看密码文件：
+```
+./bandit20-do cat /etc/bandit_pass/bandit20
+```
+<!-- 下一关用户名bandit20，密码：GbKksEFF4yrVs6il55v6gwY5aVje5f0j-->
+
+# Level 20 → Level 21
+运行当前文件夹下脚本，可连接至我们指定的端口，并读取连接信息，如果接收到本关密码，将会返回下一关密码，首先通过nc开启一个端口：
+```
+nc -lv -p 1111 #-l表示监听模式，-v显示详情，-p指定端口
+```
+打开另一个终端运行脚本：
+```
+./suconnect 1111
+```
+此时会显示ERROR，因为未接收到本关密码，所以在第一个终端改为运行：
+```
+echo "GbKksEFF4yrVs6il55v6gwY5aVje5f0j" | nc -lv -p 1111
+```
+即可在本端接收到下一关密码。
+<!-- 下一关用户名bandit21，密码：gE269g2h3mw3pwgrj0Ha9Uoqen1c9DGr-->
+
+# Level 21 → Level 22
+查看/etc/cron.d/中的文件，了解什么程序正在计划运行：
+```
+ls /etc/cron.d/
+cat /etc/cron.d/cronjob_bandit22
+```
+通过观察计划内容发现每分钟都在运行/usr/bin/cronjob_bandit22.sh，查看其内容：
+```
+cat /usr/bin/cronjob_bandit22.sh
+```
+发现此脚本试图将下一关密码发到/tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv文件中，查看其内容：
+```
+cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+即可得到下一关密码。
+<!-- 下一关用户名bandit22，密码：Yk7owGAcWjwMVRwrTesJEwB7WVOiILLI-->
+
+# Level 22 → Level 23
+前几步和上一关一样，查看/etc/cron.d/cronjob_bandit23计划的内容，然后查看/usr/bin/cronjob_bandit23.sh内容，发现此脚本的意思是将下一关密码导入/tmp/$mytarget文件夹中，其中mytarget=$(echo I am user $myname | md5sum | cut -d ' '  -f 1)，而myname=$(whoami)，此时myname的值为当前用户即bandit22。最初想法是修改cronjob_bandit23.sh内容，直接把myname的值改为bandit23，但由于没有读取/etc/bandit_pass/bandit23的权限无法运行脚本，只能单独运行：
+```
+echo I am user bandit23 | md5sum | cut -d ' '  -f 1
+```
+来计算mytarget的值，得到8ca319486bfbbc3663ea0fbe81326349，所以通过：
+```
+cat /tmp/8ca319486bfbbc3663ea0fbe81326349
+```
+查看其内容即可得到下一关密码。
+<!-- 下一关用户名bandit23，密码：jc1udXuA1tiHqjIsL8yaapX5XIAI6i0n-->
+
+# Level 23 → Level 24
+前几步和上一关一样，查看/etc/cron.d/cronjob_bandit24计划的内容，然后查看/usr/bin/cronjob_bandit24.sh内容，发现此脚本的作用是每分钟删除一次/var/spool/bandit24/文件夹下的所有文件，猜测是要编写脚本然后放到这个目录下执行，但由于这个目录每分钟都会被清除一次，所以在/tmp目录下编辑好脚本后复制到/var/spool/bandit24/文件夹下：
+```
+mkdir /tmp/getpass11111
+cd /tmp/getpass11111
+vim getpass.sh
+```
+其中getpass.sh内容为：
+```
+#!/bin/bash
+cat /etc/bandit_pass/bandit24 >>  /tmp/getpass11111/pass
+```
+然后把文件复制到/var/spool/bandit24/文件夹下等待执行即可
+```
+cp getpass.sh /var/spool/bandit24/
+chmod 777 /var/spool/bandit24/getpass.sh #此处赋权是因为将脚本复制到该文件夹后的权限不足以作为bandit24用户运行。此步操作可能会报错文件不存在，是因为定时计划的每一分钟清空文件夹操作已进行，重复上一步即可
+```
+最后通过：
+```
+cat pass
+```
+查看密码，此处可能报错文件不存在，是因为脚本还未被运行，等待一分钟定时计划运行即可。
+<!-- 下一关用户名bandit24，密码：UoMYTrfrBFHyQXmg6gzctqAwOmw1IohZ-->
