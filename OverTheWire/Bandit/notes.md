@@ -1,5 +1,3 @@
-https://overthewire.org/wargames/bandit/  
-  
 # Level 0
 首先根据提示使用ssh登录bandit.labs.overthewire.org(此处可以先通过ping获取服务器ip：176.9.9.172，然后通过ip登录，也可直接通过url登录)，端口为2220。其中用户名为bandit0，密码也为bandit0。通过：  
 ```
