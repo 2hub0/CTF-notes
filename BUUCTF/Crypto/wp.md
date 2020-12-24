@@ -31,3 +31,53 @@ for i in enc:
 根据题目名称猜测是栅栏密码，直接扔到栅栏密码在线网站（本次使用https://www.ctftools.com/down/ 中的栅栏密码模块），列举解密即可得到flag：flag{wethinkwehavetheflag}
 # 大帝的密码武器
 根据题目名称和题目描述可以猜出是凯撒密码，直接扔到凯撒密码在线网站（本次使用https://www.ctftools.com/down/ 中的凯撒密码模块）列出所有组合可以看出密文在偏移13位时得到有意义的单词“SECURITY”，用同样的加密向量加密“ComeChina”，即可得到flag{PbzrPuvan}
+# 凯撒？替换？呵呵！
+此题并非简单凯撒密码，每个字母的移位数都不同，所以直接爆破（本次使用https://quipqiup.com/ 进行词频爆破），加上已知条件MTHJ=flag，爆破出的第一条结果即是flag，注意转换成小写字母并删除空格，flag{substitutioncipherdecryptionisalwayseasyjustlikeapieceofcake}
+# 信息化时代的步伐
+根据题目描述，flag内容是中文，通过中文电码在线网站(本次使用http://code.mcdvisa.com/ 中的电码反查中文)可解出明文，flag{计算机要从娃娃抓起}
+# old-fashion
+观察密文为长文本，直接进行词频爆破（本次使用https://quipqiup.com/ 进行词频爆破），从爆破出的内容末尾部分可以看到flag：flag{n1_2hen-d3_hu1-mi-ma_a}
+# [BJDCTF 2nd]Y1nglish-y1ng
+观察密文为长文本，直接进行词频爆破（本次使用https://quipqiup.com/ 进行词频爆破），从爆破出的内容末尾部分可以看到flag，根据题目提示把最后一个字母从y改成k：flag{pyth0n_Brut3_f0rc3_oR_quipquip_AI_Cr4ck}
+# 萌萌哒的八戒
+通过题目名称想到猪圈密码，使用在线网站解密（本次使用http://ctf.ssleye.com/pigpen.html ），规范flag格式后得到flag ：flag{whenthepigwanttoeat}
+# 世上无难事
+观察密文为长文本，直接进行词频爆破（本次使用https://quipqiup.com/ 进行词频爆破），从爆破出的内容末尾部分可以看到flag：flag{640e11012805f211b0ab24ff02a1ed09}
+# rot
+根据题目名称想到凯撒密码，但移位个数未知，遂爆破之：
+
+```
+enc = [83,89,78,84,45,86,96,45,115,121,110,116,136,132,132,132,108,128,117,118,134,110,123,111,110,127,108,112,124,122,108,118,128,108,131,114,127,134,108,116,124,124,113,108,76,76,76,76,138,23,90,81,66,71,64,69,114,65,112,64,66,63,69,61,70,114,62,66,61,62,69,67,70,63,61,110,110,112,64,68,62,70,61,112,111,112]
+for i in range (-127,127):
+    for j in enc:
+        if (i+j>47) & (i+j<127):
+            print(chr(i+j),end='')
+    print ()
+```
+
+从输出结果中观察到其中一行内容为：
+
+```
+FLAGISflag{www_shiyanbar_com_is_very_good_????}MD5:38e4c352809e150186920aac37190cbc
+```
+
+其中flag内容似乎还有4位未知，但给出了MD5值，所以再爆破一下这4位的内容并计算flag串的MD5值，只要值相同就得到了flag：
+
+```
+import hashlib
+flag = "flag{www_shiyanbar_com_is_very_good_"
+for a in range(32,126): #只选取了可读字符的ASCII码范围，下同
+    for b in range(32,126):
+        for c in range(32,126):
+            for d in range(32,126):
+                key = ""
+                key += chr(a) + chr(b) + chr(c) + chr(d)
+                if (hashlib.md5((flag+key+"}").encode('utf-8')).hexdigest()) == "38e4c352809e150186920aac37190cbc":
+                    print (flag+key+"}")
+```
+
+得到flag：flag{www_shiyanbar_com_is_very_good_@8Mu}
+# [MRCTF2020]vigenere
+根据题目名称想到维吉尼亚密码，使用在线网站解密（本次使用https://guballa.de/vigenere-solver ），查看题目提供的python文件可以看到key的长度为5-10，将语言改为英文，解密，即可在最后一段看到flag：flag{vigenere_crypto_crack_man}
+# [AFCTF2018]Vigenère
+根据题目名称想到维吉尼亚密码，使用在线网站解密（本次使用https://guballa.de/vigenere-solver ），根据题目提供的c语言文件无法得知key的长度，使用网站默认长度3-30即可，将语言改为英文，解密，即可在中间部分看到flag：flag{Whooooooo_U_Gotcha!}
