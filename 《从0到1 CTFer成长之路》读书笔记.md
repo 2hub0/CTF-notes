@@ -35,3 +35,12 @@ Github上或其他扫描器搜集CMS指纹库
 利用Wappalyzer工具
 #### 3.总结经验
 可试着随意输入一些URL，通过404页面和302跳转页面发现信息
+### 1.1.4 题目经验总结
+1.针对Windows服务器，大概率是寻找CMS在其上的漏洞   
+2.在不知道密码和无法重置的情况下，通过CMS网站本身的特性，结合目录遍历来实现最后的RCE
+## 1.2 CTF中的SQL注入
+### 1.2.1 SQL注入基础
+#### 1.2.1.1 数字型注入和UNION注入
+?id=-1 union select 1,group_concat(table_name) from information.schema.tables where table_schema=database()  
+?id=-1 union select 1,group_concat(column_name) from information_schema.columns where table_name='xxx'
+#### 1.2.1.2 字符型注入和布尔盲注
